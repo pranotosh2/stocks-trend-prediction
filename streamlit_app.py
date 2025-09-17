@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import load_model
 import os
+import yfinance as yf
 
 st.set_page_config(page_title="Stock Price Prediction", layout="wide")
 
@@ -12,17 +13,31 @@ st.title("Stock Price Prediction App")
 
 # Sidebar
 st.sidebar.header("Upload Data & Model")
-uploaded_file = st.sidebar.file_uploader("Upload stock data (CSV)", type=["csv"])
+data_source = st.sidebar.radio("Select Data Source", ["Upload CSV", "Yahoo Finance"])
+
+df = None
+uploaded_file = None
+
+if data_source == "Upload CSV":
+    uploaded_file = st.sidebar.file_uploader("Upload stock data (CSV)", type=["csv"])
+    if uploaded_file:
+        df = pd.read_csv(uploaded_file)
+
+elif data_source == "Yahoo Finance":
+    ticker = st.sidebar.text_input("Enter Stock Ticker (e.g. NFLX)", value="NFLX")
+    start_date = st.sidebar.date_input("Start Date", pd.to_datetime("2020-01-01"))
+    end_date = st.sidebar.date_input("End Date", pd.to_datetime("today"))
+
+    if st.sidebar.button("Fetch Data"):
+        df = yf.download(ticker, start=start_date, end=end_date)
+
 model_path = st.sidebar.text_input("Keras Model Path", value="keras_model.h5")
 time_step = st.sidebar.number_input("Time step (lookback days)", min_value=1, max_value=365, value=60)
 
-if uploaded_file is not None:
-    # Load data
-    df = pd.read_csv(uploaded_file)
-
+if df is not None:
     # Ensure 'Close' column exists
     if "Close" not in df.columns:
-        st.error("Uploaded CSV must contain a 'Close' column.")
+        st.error("Dataset must contain a 'Close' column.")
         st.stop()
 
     # Convert Date column if available
@@ -30,7 +45,7 @@ if uploaded_file is not None:
         df['Date'] = pd.to_datetime(df['Date'])
         df.set_index('Date', inplace=True)
 
-    st.subheader(f"Dataset: {uploaded_file.name}")
+    st.subheader("Dataset Preview")
     st.write(df.head())
 
     st.subheader("Summary Statistics")
@@ -113,5 +128,4 @@ if uploaded_file is not None:
     else:
         st.warning("Please provide a valid model file (keras_model.h5)")
 else:
-    st.warning("Please upload stock data (CSV)")
-
+    st.info("Please upload a CSV file or fetch data from Yahoo Finance")
