@@ -1,7 +1,5 @@
 ﻿# stocks-trend-prediction
 
-# Linear Regression Project
-
 This project demonstrates linear regression using Python, Streamlit, and machine learning libraries. It includes a web app for interactive data analysis and model prediction.
 
 ## Project Structure
@@ -36,3 +34,4 @@ See `requirements.txt` for all required Python packages.
 ## License
 
 This project is for educational purposes.
+
