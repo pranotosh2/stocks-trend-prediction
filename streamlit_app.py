@@ -6,13 +6,13 @@ from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import load_model
 import os
 
-st.set_page_config(page_title="Netflix Stock Price Prediction", layout="wide")
+st.set_page_config(page_title="Stock Price Prediction", layout="wide")
 
-st.title("Netflix (NFLX) Stock Price Prediction App")
+st.title("Stock Price Prediction App")
 
 # Sidebar
 st.sidebar.header("Upload Data & Model")
-uploaded_file = st.sidebar.file_uploader("Upload Netflix stock data (CSV)", type=["csv"])
+uploaded_file = st.sidebar.file_uploader("Upload stock data (CSV)", type=["csv"])
 model_path = st.sidebar.text_input("Keras Model Path", value="keras_model.h5")
 time_step = st.sidebar.number_input("Time step (lookback days)", min_value=1, max_value=365, value=60)
 
@@ -20,12 +20,17 @@ if uploaded_file is not None:
     # Load data
     df = pd.read_csv(uploaded_file)
 
-    # Convert Date column
+    # Ensure 'Close' column exists
+    if "Close" not in df.columns:
+        st.error("Uploaded CSV must contain a 'Close' column.")
+        st.stop()
+
+    # Convert Date column if available
     if 'Date' in df.columns:
         df['Date'] = pd.to_datetime(df['Date'])
         df.set_index('Date', inplace=True)
 
-    st.subheader("Netflix Stock Data")
+    st.subheader(f"Dataset: {uploaded_file.name}")
     st.write(df.head())
 
     st.subheader("Summary Statistics")
@@ -45,7 +50,6 @@ if uploaded_file is not None:
 
     # Train/test split
     split_index = int(len(scaled_close)*0.7)
-    train = scaled_close[:split_index]
     test = scaled_close[split_index - time_step:]
 
     def create_sequences(data, time_step):
@@ -74,18 +78,17 @@ if uploaded_file is not None:
         ax2.legend()
         st.pyplot(fig2)
 
-        # Errors
+        # Metrics
         mae = np.mean(np.abs(y_pred_rescaled - y_test_rescaled))
-        st.write(f"**Mean Absolute Error (MAE):** {mae:.4f}")
-
-        mse= np.mean((y_pred_rescaled - y_test_rescaled)**2)
-        st.write(f"**Mean Squared Error (MSE):** {mse:.4f}")
-
+        mse = np.mean((y_pred_rescaled - y_test_rescaled)**2)
         rmse = np.sqrt(mse)
-        st.write(f"**Root Mean Squared Error (RMSE):** {rmse:.4f}")
-
         r_squared = 1 - (np.sum((y_test_rescaled - y_pred_rescaled)**2) / np.sum((y_test_rescaled - np.mean(y_test_rescaled))**2))
-        st.write(f"**R-squared:** {r_squared:.4f}")
+
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("MAE", f"{mae:.4f}")
+        col2.metric("MSE", f"{mse:.4f}")
+        col3.metric("RMSE", f"{rmse:.4f}")
+        col4.metric("R²", f"{r_squared:.4f}")
 
         # Future predictions
         st.subheader("Predict Future Prices")
@@ -110,5 +113,5 @@ if uploaded_file is not None:
     else:
         st.warning("Please provide a valid model file (keras_model.h5)")
 else:
-    st.warning("Please upload Netflix stock data (NFLX.csv)")
+    st.warning("Please upload stock data (CSV)")
 
