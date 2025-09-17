@@ -1,6 +1,6 @@
 ﻿# stocks-trend-prediction
 
-This project demonstrates linear regression using Python, Streamlit, and machine learning libraries. It includes a web app for interactive data analysis and model prediction.
+This project demonstrates stocks analysis using Python, Streamlit, RNN(LSTM). It includes a web app for interactive data analysis and model prediction.
 This model is trained on NFLX dataset, you can use different datasets for test. Here another dataset is provided in this repository for testing. 
 
 ## Project Structure
@@ -35,5 +35,6 @@ See `requirements.txt` for all required Python packages.
 ## License
 
 This project is for educational purposes.
+
 
 
